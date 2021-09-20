@@ -3,6 +3,7 @@ package com.dooboolab.kakaologins
 import com.facebook.react.bridge.*
 import com.kakao.sdk.common.KakaoSdk.init
 import com.kakao.sdk.common.model.AuthError
+import com.kakao.sdk.common.util.KakaoCustomTabsClient
 import com.kakao.sdk.user.UserApiClient
 import com.kakao.sdk.user.model.User
 import java.text.SimpleDateFormat
@@ -205,6 +206,67 @@ class RNKakaoLoginsModule(private val reactContext: ReactApplicationContext) : R
 
             promise.reject("RNKakaoLogins", "User is null")
         }
+    }
+
+    @ReactMethod
+    private fun updateScopes(scpoes: List<String>, promise: Promise){
+        UserApiClient.instance.me { user: User?, error: Throwable? ->
+            if (error != null) {
+                promise.reject("RNKakaoLogins", error.message, error)
+                return@me
+            }
+            else if (user != null) {
+                UserApiClient.instance.loginWithNewScopes(context, scopes) { token, error ->
+                    if (error != null) {
+                        promise.reject("RNKakaoLogins", error.message, error)
+                        return@me
+                    } else {
+                        // 사용자 정보 재요청
+                        UserApiClient.instance.me { user, error ->
+                            if (error != null) {
+                                promise.reject("RNKakaoLogins", error.message, error)
+                                return@me
+                            }
+                            else if (user != null) {
+                                val map = Arguments.createMap()
+                                map.putString("id", user.id.toString())
+                                val kakaoUser = user.kakaoAccount
+                                map.putString("email", kakaoUser!!.email.toString())
+                                map.putString("nickname", kakaoUser.profile?.nickname)
+                                map.putString("profileImageUrl", kakaoUser.profile?.profileImageUrl)
+                                map.putString("thumbnailImageUrl", kakaoUser.profile?.thumbnailImageUrl)
+
+                                map.putString("phoneNumber", kakaoUser.phoneNumber.toString())
+                                map.putString("ageRange", user.kakaoAccount!!.ageRange.toString())
+                                map.putString("birthday", kakaoUser.birthday.toString())
+                                map.putString("birthdayType", kakaoUser.birthdayType.toString())
+                                map.putString("birthyear", kakaoUser.birthyear.toString())
+                                map.putString("gender", kakaoUser.gender.toString())
+                                map.putBoolean("isEmailValid", convertValue(kakaoUser.isEmailValid))
+                                map.putBoolean("isEmailVerified", convertValue(kakaoUser.isEmailVerified))
+                                map.putBoolean("isKorean", convertValue(kakaoUser.isKorean))
+                                map.putBoolean("ageRangeNeedsAgreement", convertValue(kakaoUser.ageRangeNeedsAgreement))
+                                map.putBoolean("birthdayNeedsAgreement", convertValue(kakaoUser.birthdayNeedsAgreement))
+                                map.putBoolean("birthyearNeedsAgreement", convertValue(kakaoUser.birthyearNeedsAgreement))
+                                map.putBoolean("emailNeedsAgreement", convertValue(kakaoUser.emailNeedsAgreement))
+                                map.putBoolean("genderNeedsAgreement", convertValue(kakaoUser.genderNeedsAgreement))
+                                map.putBoolean("isKoreanNeedsAgreement", convertValue(kakaoUser.isKoreanNeedsAgreement))
+                                map.putBoolean("phoneNumberNeedsAgreement", convertValue(kakaoUser.phoneNumberNeedsAgreement))
+                                map.putBoolean("profileNeedsAgreement", convertValue(kakaoUser.profileNeedsAgreement))
+                                promise.resolve(map)
+                                return@me
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    }
+
+    @ReactMethod
+    private fun chat(channelId: String, promise: Promise){
+        val url = TalkApiClient.instance.channelChatUrl(channelId)
+        KakaoCustomTabsClient.openWithDefault(context, url)
     }
 
     companion object {

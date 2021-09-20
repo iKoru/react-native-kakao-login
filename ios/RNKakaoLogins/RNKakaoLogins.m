@@ -10,5 +10,6 @@ RCT_EXTERN_METHOD(logout:(RCTPromiseResolveBlock *)resolve rejecter:(RCTPromiseR
 RCT_EXTERN_METHOD(unlink:(RCTPromiseResolveBlock *)resolve rejecter:(RCTPromiseRejectBlock *)reject);
 RCT_EXTERN_METHOD(getProfile:(RCTPromiseResolveBlock *)resolve rejecter:(RCTPromiseRejectBlock *)reject);
 RCT_EXTERN_METHOD(getAccessToken:(RCTPromiseResolveBlock *)resolve rejecter:(RCTPromiseRejectBlock *)reject);
-
+RCT_EXTERN_METHOD(updateScopes:(NSArray<NSString *>*)scopes (RCTPromiseResolveBlock *)resolve rejecter:(RCTPromiseRejectBlock *) reject);
+RCT_EXTERN_METHOD(chat:(NSString *)channelId (RCTPromiseResolveBlock *)resolve rejecter:(RCTPromiseRejectBlock *) reject);
 @end

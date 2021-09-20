@@ -99,3 +99,23 @@ export const getAccessToken = async (): Promise<KakaoAccessTokenInfo> => {
     throw err;
   }
 };
+
+export const updateScopes = async (scopes: String[]): Promise<KakaoProfile> => {
+  try{
+    const result: KakaoProfile = await RNKakaoLogins.updateScopes(scopes);
+
+    return result;
+  }catch(err){
+    throw err;
+  }
+}
+
+export const chat = async (channelId: String): Promise<String> => {
+  try{
+    const result: String = await RNKakaoLogins.chat(channelId);
+
+    return result;
+  }catch(err){
+    throw err;
+  }
+}

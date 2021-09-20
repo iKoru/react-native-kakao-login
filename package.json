@@ -1,5 +1,5 @@
 {
-  "name": "@react-native-seoul/kakao-login",
+  "name": "iKoru/react-native-kakao-login",
   "version": "3.3.3",
   "description": "React Native Module for Kakao Login",
   "main": "index.js",
@@ -14,7 +14,7 @@
   },
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/react-native-seoul/react-native-kakao-login"
+    "url": "git+https://github.com/iKoru/react-native-kakao-login"
   },
   "publishConfig": {
     "access": "public"

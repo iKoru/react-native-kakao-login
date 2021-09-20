@@ -8,12 +8,15 @@
 
 import Foundation
 
+import KakaoSDKTalk
 import KakaoSDKCommon
 import KakaoSDKAuth
 import KakaoSDKUser
 
 @objc(RNKakaoLogins)
 class RNKakaoLogins: NSObject {
+
+    private var safariViewController: SFSafariViewController?
 
     public override init() {
         let appKey: String? = Bundle.main.object(forInfoDictionaryKey: "KAKAO_APP_KEY") as? String
@@ -187,6 +190,79 @@ class RNKakaoLogins: NSObject {
                         "profileNeedsAgreement": user?.kakaoAccount?.profileNeedsAgreement as Any,
                     ])
                 }
+            }
+        }
+    }
+
+    func presentSafari(url: URL,
+                       completion: @escaping (Bool) -> Void) -> Void {
+        self.safariViewController = SFSafariViewController(url: url)
+        self.safariViewController?.modalTransitionStyle = .crossDissolve
+        self.safariViewController?.modalPresentationStyle = .overCurrentContext
+        
+        DispatchQueue.main.async {
+            UIApplication.shared.open(url,
+                                      options: [:],
+                                      completionHandler: { (success) in
+                                        completion(success)
+                                      })
+        }
+    }
+    
+    @objc(chat:resolve:rejecter:)
+    func chat(_ channelId: NSString,
+              resolve: @escaping RCTPromiseResolveBlock,
+              rejecter reject: @escaping RCTPromiseRejectBlock) -> Void {
+        let url: URL? = TalkApi.shared.makeUrlForChannelChat(channelPublicId: channelId as String)
+        self.presentSafari(url: url!, completion: { success in
+            resolve(success);
+        })
+    }
+
+    @objc(updateScopes:rejecter:)
+    func updateScopes(_ scopes:NSArray,
+            resolver resolve: @escaping RCTPromiseResolveBlock,
+            rejecter reject: @escaping RCTPromiseRejectBlock) -> Void {
+        DispatchQueue.main.async {
+            UserApi.shared.loginWithKakaoAccount(scopes: scopes) { (_, error) in
+                if let error = error {
+                    reject("RNKakaoLogins", error.localizedDescription, nil)
+                }
+                else {
+                    UserApi.shared.me() { (user, error) in
+                        if let error = error {
+                            reject("RNKakaoLogins", error.localizedDescription, nil)
+                        }
+                        else {
+                            resolve([
+                                "id": user?.id as Any,
+                                "email": user?.kakaoAccount?.email as Any,
+                                "nickname": user?.kakaoAccount?.profile?.nickname as Any,
+                                "profileImageUrl": user?.kakaoAccount?.profile?.profileImageUrl as Any,
+                                "thumbnailImageUrl": user?.kakaoAccount?.profile?.thumbnailImageUrl as Any,
+                                "phoneNumber": user?.kakaoAccount?.phoneNumber as Any,
+                                "ageRange": user?.kakaoAccount?.ageRange as Any,
+                                "birthday": user?.kakaoAccount?.birthday as Any,
+                                "birthdayType": user?.kakaoAccount?.birthdayType as Any,
+                                "birthyear": user?.kakaoAccount?.birthyear as Any,
+                                "gender": user?.kakaoAccount?.gender as Any,
+                                "isEmailValid": user?.kakaoAccount?.isEmailValid as Any,
+                                "isEmailVerified": user?.kakaoAccount?.isEmailVerified as Any,
+                                "isKorean": user?.kakaoAccount?.isKorean as Any,
+                                "ageRangeNeedsAgreement": user?.kakaoAccount?.ageRangeNeedsAgreement as Any,
+                                "birthdayNeedsAgreement": user?.kakaoAccount?.birthdayNeedsAgreement as Any,
+                                "birthyearNeedsAgreement": user?.kakaoAccount?.birthyearNeedsAgreement as Any,
+                                "emailNeedsAgreement": user?.kakaoAccount?.emailNeedsAgreement as Any,
+                                "genderNeedsAgreement": user?.kakaoAccount?.genderNeedsAgreement as Any,
+                                "isKoreanNeedsAgreement": user?.kakaoAccount?.isKoreanNeedsAgreement as Any,
+                                "phoneNumberNeedsAgreement": user?.kakaoAccount?.phoneNumberNeedsAgreement as Any,
+                                "profileNeedsAgreement": user?.kakaoAccount?.profileNeedsAgreement as Any,
+                            ])
+                        }
+
+                    } //UserApi.shared.me()
+                }
+
             }
         }
     }
