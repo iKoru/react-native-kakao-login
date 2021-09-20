@@ -12,6 +12,7 @@ import KakaoSDKTalk
 import KakaoSDKCommon
 import KakaoSDKAuth
 import KakaoSDKUser
+import SafariServices
 
 @objc(RNKakaoLogins)
 class RNKakaoLogins: NSObject {
@@ -21,6 +22,9 @@ class RNKakaoLogins: NSObject {
     public override init() {
         let appKey: String? = Bundle.main.object(forInfoDictionaryKey: "KAKAO_APP_KEY") as? String
         KakaoSDKCommon.initSDK(appKey: appKey!)
+        self.safariViewController = SFSafariViewController(url: url)
+        self.safariViewController?.modalTransitionStyle = .crossDissolve
+        self.safariViewController?.modalPresentationStyle = .overCurrentContext
     }
 
     @objc
@@ -196,10 +200,6 @@ class RNKakaoLogins: NSObject {
 
     func presentSafari(url: URL,
                        completion: @escaping (Bool) -> Void) -> Void {
-        self.safariViewController = SFSafariViewController(url: url)
-        self.safariViewController?.modalTransitionStyle = .crossDissolve
-        self.safariViewController?.modalPresentationStyle = .overCurrentContext
-        
         DispatchQueue.main.async {
             UIApplication.shared.open(url,
                                       options: [:],
@@ -209,9 +209,9 @@ class RNKakaoLogins: NSObject {
         }
     }
     
-    @objc(chat:resolve:rejecter:)
-    func chat(_ channelId: NSString,
-              resolve: @escaping RCTPromiseResolveBlock,
+    @objc(chat:resolve:resolver:rejecter:)
+    func chat(_ channelId: String,
+              resolver resolve: @escaping RCTPromiseResolveBlock,
               rejecter reject: @escaping RCTPromiseRejectBlock) -> Void {
         let url: URL? = TalkApi.shared.makeUrlForChannelChat(channelPublicId: channelId as String)
         self.presentSafari(url: url!, completion: { success in
@@ -219,8 +219,8 @@ class RNKakaoLogins: NSObject {
         })
     }
 
-    @objc(updateScopes:rejecter:)
-    func updateScopes(_ scopes:NSArray,
+    @objc(updateScopes:resolver:rejecter:)
+    func updateScopes(_ scopes: Array<String>,
             resolver resolve: @escaping RCTPromiseResolveBlock,
             rejecter reject: @escaping RCTPromiseRejectBlock) -> Void {
         DispatchQueue.main.async {
