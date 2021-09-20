@@ -219,44 +219,23 @@ class RNKakaoLoginsModule(private val reactContext: ReactApplicationContext) : R
                 UserApiClient.instance.loginWithNewScopes(context, scopes) { token, error ->
                     if (error != null) {
                         promise.reject("RNKakaoLogins", error.message, error)
-                        return@me
+                        return@loginWithNewScopes
                     } else {
-                        // 사용자 정보 재요청
-                        UserApiClient.instance.me { user, error ->
-                            if (error != null) {
-                                promise.reject("RNKakaoLogins", error.message, error)
-                                return@me
-                            }
-                            else if (user != null) {
-                                val map = Arguments.createMap()
-                                map.putString("id", user.id.toString())
-                                val kakaoUser = user.kakaoAccount
-                                map.putString("email", kakaoUser!!.email.toString())
-                                map.putString("nickname", kakaoUser.profile?.nickname)
-                                map.putString("profileImageUrl", kakaoUser.profile?.profileImageUrl)
-                                map.putString("thumbnailImageUrl", kakaoUser.profile?.thumbnailImageUrl)
-
-                                map.putString("phoneNumber", kakaoUser.phoneNumber.toString())
-                                map.putString("ageRange", user.kakaoAccount!!.ageRange.toString())
-                                map.putString("birthday", kakaoUser.birthday.toString())
-                                map.putString("birthdayType", kakaoUser.birthdayType.toString())
-                                map.putString("birthyear", kakaoUser.birthyear.toString())
-                                map.putString("gender", kakaoUser.gender.toString())
-                                map.putBoolean("isEmailValid", convertValue(kakaoUser.isEmailValid))
-                                map.putBoolean("isEmailVerified", convertValue(kakaoUser.isEmailVerified))
-                                map.putBoolean("isKorean", convertValue(kakaoUser.isKorean))
-                                map.putBoolean("ageRangeNeedsAgreement", convertValue(kakaoUser.ageRangeNeedsAgreement))
-                                map.putBoolean("birthdayNeedsAgreement", convertValue(kakaoUser.birthdayNeedsAgreement))
-                                map.putBoolean("birthyearNeedsAgreement", convertValue(kakaoUser.birthyearNeedsAgreement))
-                                map.putBoolean("emailNeedsAgreement", convertValue(kakaoUser.emailNeedsAgreement))
-                                map.putBoolean("genderNeedsAgreement", convertValue(kakaoUser.genderNeedsAgreement))
-                                map.putBoolean("isKoreanNeedsAgreement", convertValue(kakaoUser.isKoreanNeedsAgreement))
-                                map.putBoolean("phoneNumberNeedsAgreement", convertValue(kakaoUser.phoneNumberNeedsAgreement))
-                                map.putBoolean("profileNeedsAgreement", convertValue(kakaoUser.profileNeedsAgreement))
-                                promise.resolve(map)
-                                return@me
+                        val (accessToken, accessTokenExpiresAt, refreshToken, refreshTokenExpiresAt, scopes) = token
+                        val map = Arguments.createMap()
+                        map.putString("accessToken", accessToken)
+                        map.putString("refreshToken", refreshToken)
+                        map.putString("accessTokenExpiresAt", dateFormat(accessTokenExpiresAt))
+                        map.putString("refreshTokenExpiresAt", dateFormat(refreshTokenExpiresAt))
+                        val scopeArray = Arguments.createArray()
+                        if (scopes != null) {
+                            for (scope in scopes) {
+                                scopeArray.pushString(scope)
                             }
                         }
+                        map.putArray("scopes", scopeArray)
+                        promise.resolve(map)
+                        return@loginWithNewScopes
                     }
                 }
             }

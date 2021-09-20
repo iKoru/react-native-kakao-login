@@ -100,9 +100,9 @@ export const getAccessToken = async (): Promise<KakaoAccessTokenInfo> => {
   }
 };
 
-export const updateScopes = async (scopes: String[]): Promise<KakaoProfile> => {
+export const updateScopes = async (scopes: String[]): Promise<KakaoOAuthToken> => {
   try{
-    const result: KakaoProfile = await RNKakaoLogins.updateScopes(scopes);
+    const result: KakaoOAuthToken = await RNKakaoLogins.updateScopes(scopes);
 
     return result;
   }catch(err){
