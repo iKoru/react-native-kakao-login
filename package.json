@@ -1,5 +1,5 @@
 {
-  "name": "iKoru/react-native-kakao-login",
+  "name": "react-native-kakao-login",
   "version": "3.3.3",
   "description": "React Native Module for Kakao Login",
   "main": "index.js",
