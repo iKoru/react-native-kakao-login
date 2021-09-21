@@ -22,9 +22,6 @@ class RNKakaoLogins: NSObject {
     public override init() {
         let appKey: String? = Bundle.main.object(forInfoDictionaryKey: "KAKAO_APP_KEY") as? String
         KakaoSDKCommon.initSDK(appKey: appKey!)
-        self.safariViewController = SFSafariViewController(url: url)
-        self.safariViewController?.modalTransitionStyle = .crossDissolve
-        self.safariViewController?.modalPresentationStyle = .overCurrentContext
     }
 
     @objc
@@ -200,6 +197,9 @@ class RNKakaoLogins: NSObject {
 
     func presentSafari(url: URL,
                        completion: @escaping (Bool) -> Void) -> Void {
+        self.safariViewController = SFSafariViewController(url: url)
+        self.safariViewController?.modalTransitionStyle = .crossDissolve
+        self.safariViewController?.modalPresentationStyle = .overCurrentContext
         DispatchQueue.main.async {
             UIApplication.shared.open(url,
                                       options: [:],
@@ -209,7 +209,7 @@ class RNKakaoLogins: NSObject {
         }
     }
     
-    @objc(chat:resolve:resolver:rejecter:)
+    @objc(chat:resolver:rejecter:)
     func chat(_ channelId: String,
               resolver resolve: @escaping RCTPromiseResolveBlock,
               rejecter reject: @escaping RCTPromiseRejectBlock) -> Void {
@@ -239,7 +239,6 @@ class RNKakaoLogins: NSObject {
                         "scopes": oauthToken?.scopes ?? "",
                     ]);
                 }
-
             }
         }
     }

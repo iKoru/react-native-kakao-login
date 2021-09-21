@@ -6,6 +6,7 @@ import com.kakao.sdk.common.model.AuthError
 import com.kakao.sdk.common.util.KakaoCustomTabsClient
 import com.kakao.sdk.user.UserApiClient
 import com.kakao.sdk.user.model.User
+import com.kakao.sdk.talk.TalkApiClient
 import java.text.SimpleDateFormat
 import java.util.*
 
@@ -209,34 +210,38 @@ class RNKakaoLoginsModule(private val reactContext: ReactApplicationContext) : R
     }
 
     @ReactMethod
-    private fun updateScopes(scpoes: List<String>, promise: Promise){
-        UserApiClient.instance.me { user: User?, error: Throwable? ->
+    private fun updateScopes(scopes: ReadableArray, promise: Promise){
+        val scopeList = mutableListOf<String>()
+        val temp = scopes.toArrayList()
+        for(o in temp){
+            scopeList.add(o as String)
+        }
+        UserApiClient.instance.loginWithNewScopes(reactContext, scopeList) { token, error ->
             if (error != null) {
                 promise.reject("RNKakaoLogins", error.message, error)
-                return@me
-            }
-            else if (user != null) {
-                UserApiClient.instance.loginWithNewScopes(context, scopes) { token, error ->
-                    if (error != null) {
-                        promise.reject("RNKakaoLogins", error.message, error)
-                        return@loginWithNewScopes
-                    } else {
-                        val (accessToken, accessTokenExpiresAt, refreshToken, refreshTokenExpiresAt, scopes) = token
-                        val map = Arguments.createMap()
-                        map.putString("accessToken", accessToken)
-                        map.putString("refreshToken", refreshToken)
-                        map.putString("accessTokenExpiresAt", dateFormat(accessTokenExpiresAt))
-                        map.putString("refreshTokenExpiresAt", dateFormat(refreshTokenExpiresAt))
-                        val scopeArray = Arguments.createArray()
-                        if (scopes != null) {
-                            for (scope in scopes) {
-                                scopeArray.pushString(scope)
-                            }
+                return@loginWithNewScopes
+            } else {
+                if (token == null) {
+                    promise.reject("RNKakaoLogins", "Token is null")
+                    return@loginWithNewScopes
+                }
+
+                if (token != null) {
+                    val (accessToken, accessTokenExpiresAt, refreshToken, refreshTokenExpiresAt, scopes) = token
+                    val map = Arguments.createMap()
+                    map.putString("accessToken", accessToken)
+                    map.putString("refreshToken", refreshToken)
+                    map.putString("accessTokenExpiresAt", dateFormat(accessTokenExpiresAt))
+                    map.putString("refreshTokenExpiresAt", dateFormat(refreshTokenExpiresAt))
+                    val scopeArray = Arguments.createArray()
+                    if (scopes != null) {
+                        for (scope in scopes) {
+                            scopeArray.pushString(scope)
                         }
-                        map.putArray("scopes", scopeArray)
-                        promise.resolve(map)
-                        return@loginWithNewScopes
                     }
+                    map.putArray("scopes", scopeArray)
+                    promise.resolve(map)
+                    return@loginWithNewScopes
                 }
             }
         }
@@ -245,7 +250,14 @@ class RNKakaoLoginsModule(private val reactContext: ReactApplicationContext) : R
     @ReactMethod
     private fun chat(channelId: String, promise: Promise){
         val url = TalkApiClient.instance.channelChatUrl(channelId)
-        KakaoCustomTabsClient.openWithDefault(context, url)
+        if(reactContext.currentActivity != null){
+            reactContext.currentActivity?.let{
+                KakaoCustomTabsClient.openWithDefault(it, url)
+            }
+        }else{
+            promise.resolve(url)
+        }
+        null
     }
 
     companion object {
